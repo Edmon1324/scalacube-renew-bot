@@ -1,0 +1,1 @@
+# scalacube-renew-bot
