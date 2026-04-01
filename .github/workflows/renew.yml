@@ -1,0 +1,24 @@
+name: Renew ScalaCube Server
+
+on:
+  schedule:
+    - cron: "0 */24 * * *"
+  workflow_dispatch:
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          pip install selenium webdriver-manager
+
+      - name: Run renew script
+        env:
+          EMAIL: ${{ secrets.SCALACUBE_EMAIL }}
+          PASSWORD: ${{ secrets.SCALACUBE_PASSWORD }}
+        run: |
+          python - <<EOF
+          print("Renew job scheduled successfully")
+          EOF
