@@ -1,55 +1,37 @@
-name: Renew ScalaCube Server
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+import time
 
-on:
-  schedule:
-    - cron: "0 */24 * * *"
-  workflow_dispatch:
+EMAIL = "твоя_почта"
+PASSWORD = "твой_пароль"
+URL = "https://scalacube.com/cp/login"
 
-jobs:
-  renew:
-    runs-on: ubuntu-latest
+options = Options()
+options.add_argument("--headless=new")
 
-    steps:
-      - name: Install dependencies
-        run: |
-          pip install selenium webdriver-manager
+driver = webdriver.Chrome(options=options)
 
-      - name: Run renew script
-        env:
-          EMAIL: ${{ secrets.SCALACUBE_EMAIL }}
-          PASSWORD: ${{ secrets.SCALACUBE_PASSWORD }}
-        run: |
-          python <<EOF
-          from selenium import webdriver
-          from selenium.webdriver.common.by import By
-          from selenium.webdriver.chrome.service import Service
-          from webdriver_manager.chrome import ChromeDriverManager
-          from selenium.webdriver.chrome.options import Options
-          import time, os
+try:
+    driver.get(URL)
+    time.sleep(5)
 
-          options = Options()
-          options.add_argument("--headless")
-          options.add_argument("--no-sandbox")
-          options.add_argument("--disable-dev-shm-usage")
+    driver.find_element(By.NAME, "email").send_keys(EMAIL)
+    driver.find_element(By.NAME, "password").send_keys(PASSWORD)
+    driver.find_element(By.XPATH, "//button[contains(text(),'Login')]").click()
 
-          driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    time.sleep(8)
 
-          driver.get("https://scalacube.com/login")
+    driver.get("https://scalacube.com/cp/free#/node/5089365/gameserver/23387150")
 
-          time.sleep(8)
+    time.sleep(10)
 
-          driver.find_element(By.ID, "email").send_keys(os.environ["EMAIL"])
-          driver.find_element(By.ID, "password").send_keys(os.environ["PASSWORD"])
+    try:
+        renew_button = driver.find_element(By.XPATH, "//button[contains(text(),'Renew')]")
+        renew_button.click()
+        print("Server renewed!")
+    except:
+        print("Renew button not found yet.")
 
-          driver.find_element(By.XPATH, "//button[contains(text(),'Login')]").click()
-
-          time.sleep(12)
-
-          driver.get("https://scalacube.com/cp/free#/node/5089365/gameserver/23387150")
-
-          time.sleep(15)
-
-          print("Opened server page successfully")
-
-          driver.quit()
-          EOF
+finally:
+    driver.quit()
